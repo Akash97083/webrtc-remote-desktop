@@ -15,7 +15,10 @@ The project is inspired from "WebRTC remote screen (https://github.com/rviscarra
 * Remote screen viewing
 * Mouse controls ( Move, Click, Double Click, Scroll )
 * Keyboard ( Basic controls )
-* ... Working on more features !
+
+### Currently Working On..
+
+* Control using touch gestures (Smartphones/Tabs/Touch devices)
 
 <hr>
 
