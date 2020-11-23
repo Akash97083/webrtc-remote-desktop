@@ -1,0 +1,229 @@
+/* 
+  ##Device = Desktops
+  ##Screen = 1281px to higher resolution desktops
+*/
+
+@media (min-width: 1281px) {
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #303030;
+  }
+
+  .touch-container {
+    display: none;
+    background-color: #303030;
+    height: 100%;
+    width: 100%;
+  }
+
+  .screen-video {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+}
+
+/* 
+    ##Device = Laptops, Desktops
+    ##Screen = B/w 1025px to 1280px
+  */
+
+@media (min-width: 1025px) and (max-width: 1280px) {
+  /* CSS */
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: #303030;
+  }
+}
+
+/* 
+    ##Device = Tablets, Ipads (portrait)
+    ##Screen = B/w 768px to 1024px
+  */
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 50%;
+    background-color: #303030;
+  }
+
+  .touch-container {
+    display: none;
+    background-color: #303030;
+    height: 100%;
+    width: 100%;
+  }
+
+  .touchpad {
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: white;
+    width: 100%;
+    height: calc(100vh - 35px);
+    border-radius: 20px 20px 0 0;
+    padding: 10px;
+    margin: 0px;
+  }
+
+  .touch-btn-container {
+    position: fixed;
+    height: 100px;
+    width: 108%;
+    margin: 0px;
+    bottom: 0;
+    padding: 5px;
+  }
+
+  .screen-video {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+}
+
+/* 
+    ##Device = Tablets, Ipads (landscape)
+    ##Screen = B/w 768px to 1024px
+  */
+
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 50%;
+    background-color: #303030;
+  }
+
+  .touch-container {
+    display: none;
+    background-color: #303030;
+    height: 100%;
+    width: 100%;
+  }
+
+  .touchpad {
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: white;
+    width: 100%;
+    height: calc(100vh - 35px);
+    border-radius: 20px 20px 0 0;
+    padding: 10px;
+    margin: 0px;
+  }
+
+  .touch-btn-container {
+    position: fixed;
+    height: 100px;
+    width: 108%;
+    margin: 0px;
+    bottom: 0;
+    padding: 5px;
+  }
+
+  .screen-video {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+}
+
+/* 
+    ##Device = Low Resolution Tablets, Mobiles (Landscape)
+    ##Screen = B/w 481px to 767px
+  */
+
+@media (min-width: 481px) and (max-width: 767px) {
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 50%;
+    background-color: #303030;
+  }
+
+  .touch-container {
+    display: none;
+    background-color: #303030;
+    height: 100%;
+    width: 100%;
+  }
+
+  .touchpad {
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: white;
+    width: 100%;
+    height: calc(100vh - 35px);
+    border-radius: 20px 20px 0 0;
+    padding: 10px;
+    margin: 0px;
+  }
+
+  .touch-btn-container {
+    position: fixed;
+    height: 100px;
+    width: 108%;
+    margin: 0px;
+    bottom: 0;
+    padding: 5px;
+  }
+
+  .screen-video {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+}
+
+/* 
+    ##Device = Most of the Smartphones Mobiles (Portrait)
+    ##Screen = B/w 320px to 479px
+  */
+
+@media (min-width: 320px) and (max-width: 480px) {
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 50%;
+    background-color: #303030;
+  }
+
+  .touch-container {
+    display: none;
+    background-color: #303030;
+    height: 100%;
+    width: 100%;
+  }
+
+  .touchpad {
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: white;
+    width: 100%;
+    height: calc(100vh - 35px);
+    border-radius: 20px 20px 0 0;
+    padding: 10px;
+    margin: 0px;
+  }
+
+  .touch-btn-container {
+    position: fixed;
+    height: 100px;
+    width: 108%;
+    margin: 0px;
+    bottom: 0;
+    padding: 5px;
+  }
+
+  .screen-video {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+}

@@ -8,7 +8,22 @@ let resolutionMap = {
   canvasHeight: 0,
 };
 
-function showError(error) {
+let currentRemoteMousePos = {
+  x: 0,
+  y: 0
+}
+
+let lastTouchMousePos = {
+  x: 0,
+  y: 0
+}
+
+let canvasElement = 'screen-canvas'
+let touchCanvas = 'touch-canvas'
+let videoElement = 'screen-video'
+
+
+function showError (error) {
   const errorNode = document.querySelector("#error");
   if (errorNode.firstChild) {
     errorNode.removeChild(errorNode.firstChild);
@@ -16,7 +31,7 @@ function showError(error) {
   errorNode.appendChild(document.createTextNode(error.message || error));
 }
 
-function startSession(offer, screen) {
+function startSession (offer, screen) {
   return fetch("/api/session", {
     method: "POST",
     body: JSON.stringify({
@@ -35,7 +50,7 @@ function startSession(offer, screen) {
     });
 }
 
-function createOffer(pc, { audio, video }) {
+function createOffer (pc, { audio, video }) {
   return new Promise((accept, reject) => {
     pc.onicecandidate = (evt) => {
       if (!evt.candidate) {
@@ -55,7 +70,7 @@ function createOffer(pc, { audio, video }) {
   });
 }
 
-function sendDataMessage(command, data) {
+function sendDataMessage (command, data) {
   if (dataChannel) {
     // Send cordinates
     dataChannel.send(
@@ -67,24 +82,27 @@ function sendDataMessage(command, data) {
   }
 }
 
-function enableMouseEvents(dataChannel) {
+function enableMouseEvents (dataChannel) {
   // Start sending mouse cordinates on mouse move in canvas
-  const remoteCanvas = document.getElementById("remote-canvas");
+  const canvas = (isMobileDevice()) ? document.getElementById(touchCanvas) : document.getElementById(canvasElement);
 
   // On Mouse move
-  remoteCanvas.addEventListener("mousemove", (event) => {
-    // Get cordinates
-    const cordinates = scaleCordinatesToOriginalScreen(event);
+  if (!isMobileDevice()) {
+    canvas.addEventListener("mousemove", (event) => {
 
-    // Send cordinates
-    sendDataMessage("mousemove", {
-      x: cordinates.x,
-      y: cordinates.y,
+      // Get cordinates
+      const cordinates = scaleCordinatesForDesktop(event.clientX, event.clientY);
+
+      // Send cordinates
+      sendDataMessage("mousemove", {
+        x: cordinates.x,
+        y: cordinates.y,
+      });
     });
-  });
+  }
 
   // On Mouse Click
-  remoteCanvas.addEventListener("mousedown", (event) => {
+  canvas.addEventListener("mousedown", (event) => {
     let button = "left";
 
     switch (event.which) {
@@ -110,7 +128,7 @@ function enableMouseEvents(dataChannel) {
   });
 
   // On Mouse Double Click
-  remoteCanvas.addEventListener("dblclick", (event) => {
+  canvas.addEventListener("dblclick", (event) => {
     let button = "left";
 
     switch (event.which) {
@@ -136,12 +154,68 @@ function enableMouseEvents(dataChannel) {
   });
 
   // On Mouse Scroll
-  remoteCanvas.addEventListener("wheel", (event) => {
+  canvas.addEventListener("wheel", (event) => {
     const delta = Math.sign(event.deltaY);
     const direction = delta > 0 ? "down" : "up";
     sendDataMessage("mousescroll", {
       direction,
     });
+  });
+
+  /** TOUCH EVENTS */
+  // On Touch start
+  canvas.addEventListener('touchstart', (event) => {
+
+    lastTouchMousePos.x = event.touches[0].clientX
+    lastTouchMousePos.y = event.touches[0].clientY
+
+    switch (event.touches.length) {
+      // case 1:
+      //   sendDataMessage("click", {
+      //     button: 'left'
+      //   })
+      //   break
+
+      case 2:
+        sendDataMessage("click", {
+          button: 'right'
+        })
+        break
+
+      case 3:
+        console.log('Triple touch')
+        break
+
+      default:
+        console.log('Not supported gesture')
+    }
+  });
+
+  // On touch move
+  canvas.addEventListener('touchmove', event => {
+
+    // Get cordinates
+    var touch = event.touches[0];
+    const x = (touch.clientX - lastTouchMousePos.x).toFixed(0);
+    const y = (touch.clientY - lastTouchMousePos.y).toFixed(0);
+    lastTouchMousePos.x = touch.clientX;
+    lastTouchMousePos.y = touch.clientY;
+
+    // Send cordinates
+    sendDataMessage("mousetouchmove", {
+      x: x,
+      y: y,
+    });
+  });
+
+  // On touch cancel
+  canvas.addEventListener('touchcancel', event => {
+    console.log('Touch cancel')
+  });
+
+  // On touch end
+  canvas.addEventListener('touchend', event => {
+    console.log('Touch end')
   });
 
   /** DOCUMENT LEVEL EVENT LISTENERS */
@@ -153,13 +227,56 @@ function enableMouseEvents(dataChannel) {
   });
 }
 
-function scaleCordinatesToOriginalScreen(event) {
-  const remoteCanvas = document.getElementById("remote-canvas");
+function touchLeftClick () {
+  sendDataMessage("click", {
+    button: 'left'
+  })
+}
+
+function touchRightClick () {
+  sendDataMessage("click", {
+    button: 'right'
+  })
+}
+
+function drawMousePointer () {
+  const remoteCanvas = document.getElementById(canvasElement);
+  const context = remoteCanvas.getContext('2d');
+  const pointer = new Image();
+  pointer.src = '/static/img/pointer.png';
+
+  const repaint = function () {
+    context.clearRect(0, 0, remoteCanvas.width, remoteCanvas.height);
+    const localPoints = scaleRemoteCordinatesToLocalDisplay()
+    context.drawImage(pointer, localPoints.x, localPoints.y, 12, 18);
+  }
+
+  pointer.onload = () => requestAnimationFrame(repaint)
+}
+
+function scaleRemoteCordinatesToLocalDisplay () {
+
+  // Calculate remote position in percent
+  const xPer = (currentRemoteMousePos.x / resolutionMap.screenWidth) * 100
+  const yPer = (currentRemoteMousePos.y / resolutionMap.screenHeight) * 100
+
+  // Calculate local position
+  const localX = ((resolutionMap.canvasWidth * xPer) / 100).toFixed(0)
+  const localY = ((resolutionMap.canvasHeight * yPer) / 100).toFixed(0)
+
+  return {
+    x: localX,
+    y: localY
+  }
+}
+
+function scaleCordinatesForDesktop (posX, posY) {
+  const remoteCanvas = document.getElementById(canvasElement);
   // Get canvas size
   const rect = remoteCanvas.getBoundingClientRect();
   // Get mouse cordinates on canvas
-  const x = (event.clientX - rect.left).toFixed(0);
-  const y = (event.clientY - rect.top).toFixed(0);
+  const x = (posX - rect.left).toFixed(0);
+  const y = (posY - rect.top).toFixed(0);
   // Calculate screen percentage based on canvas
   const xPer = (x / resolutionMap.canvasWidth) * 100;
   const yPer = (y / resolutionMap.canvasHeight) * 100;
@@ -170,7 +287,7 @@ function scaleCordinatesToOriginalScreen(event) {
   };
 }
 
-function startRemoteSession(screen, remoteVideoNode, stream) {
+function startRemoteSession (screen, remoteVideoNode, stream) {
   let pc;
 
   return Promise.resolve()
@@ -195,10 +312,15 @@ function startRemoteSession(screen, remoteVideoNode, stream) {
             case "screensize":
               resolutionMap.screenHeight = message.data.height;
               resolutionMap.screenWidth = message.data.width;
+              currentRemoteMousePos.x = message.data.mouseX
+              currentRemoteMousePos.y = message.data.mouseY
+              // drawMousePointer()
               break;
 
-            case "mousepose":
-              console.log(message);
+            case "mousetouchmove":
+              currentRemoteMousePos.x = message.data.x
+              currentRemoteMousePos.y = message.data.y
+              // drawMousePointer()
               break;
           }
         } catch (e) {
@@ -232,7 +354,7 @@ function startRemoteSession(screen, remoteVideoNode, stream) {
     .then(() => pc);
 }
 
-function resizeCanvas(canvas, video) {
+function resizeCanvas (canvas, video) {
   const w = video.offsetWidth;
   const h = video.offsetHeight;
   canvas.width = w;
@@ -242,7 +364,7 @@ function resizeCanvas(canvas, video) {
   resolutionMap.canvasWidth = w;
 }
 
-function disconnectSession() {
+function disconnectSession () {
   sendDataMessage("terminate", {});
   peerConnection.close();
   peerConnection = null;
@@ -266,10 +388,42 @@ const setStartStopTitle = (title) => {
   startStop.appendChild(document.createTextNode(title));
 };
 
+function getBrowser () {
+  // Opera 8.0+
+  if ((!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0) return 'opera'
+
+  // Firefox 1.0+
+  if (typeof InstallTrigger !== 'undefined') return 'firefox'
+
+  // Safari 3.0+ "[object HTMLElementConstructor]" 
+  if (/constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification))) return 'safari'
+
+  // Internet Explorer 6-11
+  if (/*@cc_on!@*/false || !!document.documentMode) return 'ie'
+
+  // Edge 20+
+  if (!(/*@cc_on!@*/false || !!document.documentMode) && !!window.StyleMedia) return 'edge'
+
+  // Edge (based on chromium) detection
+  if ((!!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime)) && (navigator.userAgent.indexOf("Edg") != -1)) return 'newedge'
+
+  // Chrome 1 - 79
+  if (!!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime)) return 'chrome'
+}
+
+function isMobileDevice () {
+  return typeof window.orientation !== 'undefined'
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   let selectedScreen = 0;
-  const remoteVideo = document.querySelector("#remote-video");
-  const remoteCanvas = document.querySelector("#remote-canvas");
+  const remoteVideo = document.getElementById(videoElement);
+  const remoteCanvas = document.getElementById(canvasElement);
+
+  if (isMobileDevice()) {
+    document.getElementById('touch-container').style.display = 'block'
+  }
+
   // Disable right click context on canvas
   remoteCanvas.oncontextmenu = function (e) {
     e.preventDefault();
@@ -303,10 +457,12 @@ document.addEventListener("DOMContentLoaded", () => {
           .then(() => {
             enableStartStop(true);
             setStartStopTitle("Disconnect");
+            document.getElementById('instruction').style.display = 'none'
           });
       });
     } else {
       disconnectSession();
+      document.getElementById('instruction').style.display = 'block'
       remoteVideo.style.setProperty("visibility", "collapse");
     }
   });
@@ -317,26 +473,3 @@ window.addEventListener("beforeunload", () => {
     peerConnection.close();
   }
 });
-
-function getBrowser () {
-  // Opera 8.0+
-  if ((!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0) return 'opera'
-
-  // Firefox 1.0+
-  if (typeof InstallTrigger !== 'undefined') return 'firefox'
-
-  // Safari 3.0+ "[object HTMLElementConstructor]" 
-  if (/constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification))) return 'safari'
-
-  // Internet Explorer 6-11
-  if (/*@cc_on!@*/false || !!document.documentMode) return 'ie'
-
-  // Edge 20+
-  if (!(/*@cc_on!@*/false || !!document.documentMode) && !!window.StyleMedia) return 'edge'
-
-  // Edge (based on chromium) detection
-  if ((!!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime)) && (navigator.userAgent.indexOf("Edg") != -1)) return 'newedge'
-
-  // Chrome 1 - 79
-  if (!!window.chrome && (!!window.chrome.webstore || !!window.chrome.runtime)) return 'chrome'
-}

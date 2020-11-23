@@ -1,0 +1,87 @@
+/* Portrait */
+@media only screen and (min-device-width: 375px) and (max-device-width: 812px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: portrait) {
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 50%;
+    background-color: #303030;
+  }
+
+  .touch-container {
+    display: none;
+    background-color: #303030;
+    height: 100%;
+    width: 100%;
+  }
+
+  .touchpad {
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: white;
+    width: 100%;
+    height: calc(100vh - 35px);
+    border-radius: 20px 20px 0 0;
+    padding: 10px;
+    margin: 0px;
+  }
+
+  .touch-btn-container {
+    position: fixed;
+    height: 100px;
+    width: 108%;
+    margin: 0px;
+    bottom: 0;
+    padding: 5px;
+    z-index: 2;
+  }
+
+  .screen-video {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+}
+
+/* Landscape */
+@media only screen and (min-device-width: 375px) and (max-device-width: 812px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: landscape) {
+  .video-container {
+    position: relative;
+    width: 100%;
+    height: 50%;
+    background-color: #303030;
+  }
+
+  .touch-container {
+    display: none;
+    background-color: #303030;
+    height: 100%;
+    width: 100%;
+  }
+
+  .touchpad {
+    background-color: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(10px);
+    color: white;
+    width: 100%;
+    height: calc(100vh - 35px);
+    border-radius: 20px 20px 0 0;
+    padding: 10px;
+    margin: 0px;
+  }
+
+  .touch-btn-container {
+    position: fixed;
+    height: 100px;
+    width: 108%;
+    margin: 0px;
+    bottom: 0;
+    z-index: 2;
+    padding: 5px;
+  }
+
+  .screen-video {
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+  }
+}

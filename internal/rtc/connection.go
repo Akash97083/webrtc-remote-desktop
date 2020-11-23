@@ -9,14 +9,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/go-vgo/robotgo"
 	"github.com/google/uuid"
-	"github.com/tidwall/sjson"
+	"github.com/imtiyazs/webrtc-remote-desktop/internal/config"
+	"github.com/imtiyazs/webrtc-remote-desktop/internal/encoders"
+	"github.com/imtiyazs/webrtc-remote-desktop/internal/rdisplay"
 	"github.com/pion/sdp"
 	"github.com/pion/webrtc/v2"
-	"github.com/imtiyazs/webrtc-remote-desktop/internal/encoders"
-	"github.com/imtiyazs/webrtc-remote-desktop/internal/config"
-	"github.com/go-vgo/robotgo"
-	"github.com/imtiyazs/webrtc-remote-desktop/internal/rdisplay"
+	"github.com/tidwall/sjson"
 )
 
 // RemoteScreenPeerConn is a webrtc.PeerConnection wrapper that implements the
@@ -124,7 +124,7 @@ func (p *RemoteScreenPeerConn) ProcessOffer(strOffer string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	
+
 	p.connection = peerConn
 
 	peerConn.OnICEConnectionStateChange(func(connState webrtc.ICEConnectionState) {
@@ -135,7 +135,7 @@ func (p *RemoteScreenPeerConn) ProcessOffer(strOffer string) (string, error) {
 		if connState == webrtc.ICEConnectionStateDisconnected {
 			p.Close()
 		}
-		
+
 		log.Printf("Connection state: %s \n", connState.String())
 	})
 
@@ -197,13 +197,12 @@ func (p *RemoteScreenPeerConn) ProcessOffer(strOffer string) (string, error) {
 		return "", err
 	}
 
-
 	// Register data channel creation handling
 	peerConn.OnDataChannel(func(d *webrtc.DataChannel) {
 
 		type WSSMessage struct {
 			Command string
-			Data interface{}
+			Data    interface{}
 		}
 
 		incomingMessage := &WSSMessage{}
@@ -219,9 +218,12 @@ func (p *RemoteScreenPeerConn) ProcessOffer(strOffer string) (string, error) {
 			switch incomingMessage.Command {
 			case "screensize":
 				screen := p.grabber.Screen()
+				mouseX, mouseY := robotgo.GetMousePos()
 				screenSize := make(map[string]interface{})
 				screenSize["width"] = screen.Bounds.Dx()
 				screenSize["height"] = screen.Bounds.Dy()
+				screenSize["mouseX"] = mouseX
+				screenSize["mouseY"] = mouseY
 
 				// Create response
 				response, _ := sjson.Set("", "command", incomingMessage.Command)
@@ -230,6 +232,41 @@ func (p *RemoteScreenPeerConn) ProcessOffer(strOffer string) (string, error) {
 				if err != nil {
 					log.Fatal(err)
 				}
+				break
+
+			case "mousetouchmove":
+				m, ok := incomingMessage.Data.(map[string]interface{})
+				if !ok {
+					return
+				}
+
+				// string to int
+				x, err := strconv.Atoi(m["x"].(string))
+				if err != nil {
+					return
+				}
+
+				y, err := strconv.Atoi(m["y"].(string))
+				if err != nil {
+					return
+				}
+
+				// Get current position first
+				mousePos := make(map[string]interface{})
+				currentX, currentY := robotgo.GetMousePos()
+				mousePos["x"] = currentX + x
+				mousePos["y"] = currentY + y
+
+				// Move mouse
+				robotgo.MoveMouse(currentX+x, currentY+y)
+
+				response, _ := sjson.Set("", "command", incomingMessage.Command)
+				response, _ = sjson.Set(response, "data", mousePos)
+				err = d.SendText(response)
+				if err != nil {
+					log.Fatal(err)
+				}
+
 				break
 
 			case "mousemove":
@@ -249,7 +286,21 @@ func (p *RemoteScreenPeerConn) ProcessOffer(strOffer string) (string, error) {
 					return
 				}
 
+				// Move mouse
 				robotgo.MoveMouse(x, y)
+
+				// Send current mouse pos
+				mousePos := make(map[string]interface{})
+				x, y = robotgo.GetMousePos()
+				mousePos["x"] = x
+				mousePos["y"] = y
+				response, _ := sjson.Set("", "command", incomingMessage.Command)
+				response, _ = sjson.Set(response, "data", mousePos)
+				err = d.SendText(response)
+				if err != nil {
+					log.Fatal(err)
+				}
+
 				break
 
 			case "click":

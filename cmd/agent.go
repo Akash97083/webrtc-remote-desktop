@@ -62,7 +62,7 @@ func main() {
 	errors := make(chan error, 2)
 	go func() {
 		log.Printf("Server started on port %s", *httpPort)
-		errors <- http.ListenAndServeTLS(fmt.Sprintf(":%s", *httpPort),"certs/localhost.crt","certs/localhost.key", mux)
+		errors <- http.ListenAndServeTLS(fmt.Sprintf(":%s", *httpPort), "certs/localhost.crt", "certs/localhost.key", mux)
 	}()
 
 	go func() {
