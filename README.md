@@ -18,6 +18,13 @@ The project is inspired from "WebRTC remote screen (https://github.com/rviscarra
 * Mobile View ( Portrait view, touch pad with buttons )
 * Gestures (1 tap = left click, 2 taps = right click, 3 taps = undefined yet [Need some idea])
 
+<hr>
+
+### Screenshots
+
+![Alt screen](docs/desktop.png?raw=true "Screen View")
+
+<hr>
 
 ### Currently Working On..
 
