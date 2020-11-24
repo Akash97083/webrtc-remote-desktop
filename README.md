@@ -22,13 +22,14 @@ The project is inspired from "WebRTC remote screen (https://github.com/rviscarra
 
 ### Screenshots
 
-![Alt screen](docs/desktop.png?raw=true "Screen View")
+<img src="docs/desktop.png" width="600"/> | <img src="docs/mobile.jpeg" width="200"/> 
 
 <hr>
 
 ### Currently Working On..
 
-* Control using touch gestures (Smartphones/Tabs/Touch devices)
+* Keyboard for touch / handheld devices
+* Code refactor + new plugin
 
 <hr>
 
